@@ -107,8 +107,8 @@ def test_differential_operators(operators,
     linear = h**1*ep[-1]
     quadratic = h**2*ep[-1]
 
-    axis.loglog(h, ep, 'r*-', label='$project$')
-    axis.loglog(h, ew, 'b*-', label='$weight$')
+    axis.loglog(h, ep, 'r*-', label='$project, %.2f$'% results[-1, 3])
+    axis.loglog(h, ew, 'b*-', label='$weight, %.2f$' % results[-1, 4])
     axis.loglog(h, linear, 'k--')
     axis.loglog(h, quadratic, 'k--')
     axis.set_xlabel('$h$')

@@ -46,13 +46,11 @@ def interior_cells(mesh, width=0):
         mesh.init(tdim, tdim)
         MESH_CELLS = mesh_cells.array()
         for i in range(width):
-            print i
             # Note, Subsetiterator needs 'size_t' not bool
             false_cells = SubsetIterator(mesh_cells, 0)
             # TODO, filter unique?
             new_false_cells = np.concatenate([cell.entities(tdim)
                                               for cell in false_cells])
-            print new_false_cells
             MESH_CELLS[new_false_cells] = 0
 
     return mesh_cells
@@ -81,19 +79,27 @@ def error_norm(u, uh, norm_type, mesh_f=None, subdomain=None):
     e.vector().axpy(-1, uh.vector())
 
     dX = Measure('dx')
-    area = assemble(Constant(1)*dX(mesh))
+    volume = assemble(Constant(1)*dX(mesh))
 
     if mesh_f is not None:
-        area = assemble(Constant(1)*dX(subdomain, domain=mesh,
+        volume_ = assemble(Constant(1)*dX(subdomain, domain=mesh,
                                        subdomain_data=mesh_f))
-        dX = Measure('dx')[mesh_f]
-        dX = dX(subdomain)
+        # Only use the restricted mesh if it actually has content
+        volume = volume_ if volume_ > 0 else volume
+        if volume_ > 0:
+            dX = Measure('dx')[mesh_f]
+            dX = dX(subdomain)
 
     norm_type = norm_type.lower()
     if norm_type == 'l1':
-        error = assemble(abs(e)*dX)/area
+        if rank == 0:
+            error = assemble(abs(e)*dX)/volume
+        else:
+            # Well...
+            error = sum(assemble(abs(e[i])*dX)/volume
+                     for i in range(mesh.geometry().dim()))
     elif norm_type == 'l2':
-        error = sqrt(assemble(inner(e, e)*dX))/area
+        error = sqrt(assemble(inner(e, e)*dX))/volume
     elif norm_type == 'linf':
         e.vector().abs()
         error = e.vector().max()

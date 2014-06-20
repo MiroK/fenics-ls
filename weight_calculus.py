@@ -131,7 +131,7 @@ def wDiv(f, weight_type='harmonic'):
 
     else:
         assert (is_in_space(f, family='Lagrange', degree=1, shape=(2, )) or
-                is_in_space(f, family='Lagrange', degree=1, shape=(3, 0)))
+                is_in_space(f, family='Lagrange', degree=1, shape=(3, )))
 
         gdim = f.function_space().mesh().geometry().dim()
         assert gdim > 1
